@@ -1,13 +1,16 @@
 import React, { useEffect } from "react";
-import { connect } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import contactsAction from "./redux/actions/contactsAction";
 import contactsOperations from "./redux/operations/contactsOperations";
 import Section from "./Components/Section/Section";
 import ContactForm from "./Components/ContactForm/ContactForm";
 import Contacts from "./Components/Contacts/Contacts";
 import transition from "styled-transition-group";
-import PropTypes from "prop-types";
 import Loader from "react-loader-spinner";
+import {
+  loaderSelector,
+  errorSelector,
+} from "./redux/selectors/contacts-selectors";
 
 const Div = transition.div.attrs({
   unmountOnExit: true,
@@ -43,15 +46,19 @@ color: white;
   }
 `;
 
-const App = ({ loading, error, onChangeError, onFetchContacts }) => {
+const App = () => {
+  const dispatch = useDispatch();
+  const error = useSelector((state) => errorSelector(state));
+  const loading = useSelector((state) => loaderSelector(state));
+
   useEffect(() => {
-    onFetchContacts();
+    dispatch(contactsOperations.fetchContacts());
   }, []);
 
   useEffect(() => {
     if (error) {
       setTimeout(() => {
-        onChangeError("");
+        dispatch(contactsAction.changeError(""));
       }, 1500);
     }
   }, [error]);
@@ -81,20 +88,4 @@ const App = ({ loading, error, onChangeError, onFetchContacts }) => {
     </>
   );
 };
-
-const mapStateToProps = (state) => ({
-  error: state.contacts.error,
-  loading: state.contacts.loading,
-});
-
-const mapDispatchToProps = {
-  onChangeError: contactsAction.changeError,
-  onFetchContacts: contactsOperations.fetchContacts,
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(App);
-
-App.propTypes = {
-  error: PropTypes.string.isRequired,
-  onChangeError: PropTypes.func.isRequired,
-};
+export default App;
